@@ -48,7 +48,7 @@ if [ "$HNAME" = "$DEST_HOST_FIX" ] ; then
 
 else
 
-    echo $HNAME != $DEST_HOST_FIX
+    echo Bad hostname: $HNAME != $DEST_HOST_FIX
 
 fi
 
