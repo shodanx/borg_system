@@ -1,0 +1,42 @@
+#!/bin/sh
+
+export BORG_RSH='ssh -i /etc/borg/ssh_key'
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
+
+MYHOST=`hostname | sed s/\\\./_/g`
+SERVER=`cat /etc/borg/server_name`
+REPO='ssh://'$MYHOST'@'$SERVER'/./'$MYHOST
+
+rm    -R /mnt/db_bkp
+mkdir -p /mnt/db_bkp
+
+innobackupex --compress /mnt/db_bkp >/var/log/borg_last.log  2>&1
+
+borg create -v --stats --list            \
+    $REPO::'{now:%Y-%m-%d_%H:%M}'  \
+    /                                    \
+    --exclude /dev                       \
+    --exclude /proc                      \
+    --exclude */proc                     \
+    --exclude /sys                       \
+    --exclude /var/run                   \
+    --exclude /run                       \
+    --exclude /lost+found                \
+    --exclude /var/lib/lxcfs		 \
+    --exclude */bitrix/cache		 \
+    --exclude */bitrix/stack_cache	 \
+    --exclude */bitrix/managed_cache	 \
+    --exclude */bitrix/html_pages	 \
+    --exclude */upload/resize_cache	 \
+    --exclude */bitrix/backup		 \
+    --exclude /var/log			 \
+    --exclude */var/log			 \
+    --exclude */logs/webserver		 \
+    --exclude /root			 \
+    --exclude /ssd/mysql		 \
+    --exclude /mnt/ssd/mysql		 \
+    --exclude /var/lib/mysql		 \
+    >>/var/log/borg_last.log 2>&1
+
+rm    -R /mnt/db_bkp
