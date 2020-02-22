@@ -1,0 +1,2 @@
+#
+0 15 * * * root /etc/borg/check_borg.sh
