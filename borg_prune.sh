@@ -10,6 +10,6 @@ find /home/ -name config | sed 's/config$//' | while read line ; do
     USER=`echo $line | awk -F'/' '{print $3}'`
     chown -R $USER:$USER $line
 
-    sleep 600
+    sleep 30
 
 done
