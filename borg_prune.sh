@@ -3,13 +3,28 @@
 export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
 export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 
+BKP_NUM=30
 
-find /home/ -name config | sed 's/config$//' | while read line ; do
+find /home/ -name config | sed 's/config$//' | grep sysadmin | while read line ; do
 
-    borg prune --stats --list --keep-daily 30 $line
-    USER=`echo $line | awk -F'/' '{print $3}'`
-    chown -R $USER:$USER $line
+    BKP_FACT=`borg list $line | wc -l`
 
     sleep 30
+
+    if [ "$BKP_FACT" -ge "$BKP_NUM" ] ; then
+
+	echo $line Prune now to $BKP_NUM backups.
+
+	borg --debug prune -v --stats --list --keep-within=$BKP_NUM\d $line
+	USER=`echo $line | awk -F'/' '{print $3}'`
+	chown -R $USER:$USER $line
+
+	sleep 30
+
+    else
+
+	echo $line $BKP_FACT" < "$BKP_NUM prune canceled.
+
+    fi
 
 done
