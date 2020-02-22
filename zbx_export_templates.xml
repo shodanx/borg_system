@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>4.4</version>
+    <date>2020-02-22T10:45:29Z</date>
+    <groups>
+        <group>
+            <name>BORG</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>BORG Repository</template>
+            <name>BORG Repository</name>
+            <groups>
+                <group>
+                    <name>BORG</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>raw data</name>
+                </application>
+                <application>
+                    <name>Space</name>
+                </application>
+                <application>
+                    <name>State</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Total used space (procent)</name>
+                    <type>SSH</type>
+                    <key>ssh.run[space_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                    <delay>2h</delay>
+                    <params>df -h 2&gt;/dev/null  | grep -v &quot;Use&quot; | grep &quot;/$&quot; | grep &quot;%&quot; | awk '{print $5}' | awk -F'%' '{print $1}'</params>
+                    <authtype>PUBLIC_KEY</authtype>
+                    <username>zabbix_check</username>
+                    <publickey>id_rsa.pub</publickey>
+                    <privatekey>id_rsa</privatekey>
+                    <applications>
+                        <application>
+                            <name>Space</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}&gt;90</expression>
+                            <name>{HOST.NAME} free space is critical</name>
+                            <priority>HIGH</priority>
+                        </trigger>
+                        <trigger>
+                            <expression>{last()}&gt;80</expression>
+                            <name>{HOST.NAME} Low free space</name>
+                            <priority>WARNING</priority>
+                            <dependencies>
+                                <dependency>
+                                    <name>{HOST.NAME} free space is critical</name>
+                                    <expression>{BORG Repository:ssh.run[space_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}].last()}&gt;90</expression>
+                                </dependency>
+                            </dependencies>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Hosts</name>
+                    <type>SSH</type>
+                    <key>ssh.run[detect_{HOST.NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                    <delay>3h</delay>
+                    <params>echo &quot;[&quot;&#13;
+cat /borg_check.json.tmp | sed '$s/,$//'&#13;
+echo &quot;]&quot;</params>
+                    <authtype>PUBLIC_KEY</authtype>
+                    <username>zabbix_check</username>
+                    <publickey>id_rsa.pub</publickey>
+                    <privatekey>id_rsa</privatekey>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>{#HOST_NAME} Database size</name>
+                            <type>DEPENDENT</type>
+                            <key>Database_size[{#HOST_NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Space</name>
+                                </application>
+                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>BORG</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.Database_size</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[data_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;({prev()}/1.5)</expression>
+                                    <name>{#HOST_NAME} Database size is strange</name>
+                                    <priority>WARNING</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;1M or {nodata(2d)}=1</expression>
+                                    <name>{#HOST_NAME} Database size is too small</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#HOST_NAME} Maximum archive size limit</name>
+                            <type>DEPENDENT</type>
+                            <key>max_archive_size[{#HOST_NAME}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Space</name>
+                                </application>
+                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>BORG</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.max_archive_size</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[data_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;0.99</expression>
+                                    <name>{#HOST_NAME} Maximum limit exceeded.</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;0.8</expression>
+                                    <name>{#HOST_NAME} Maximum limit warning.</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#HOST_NAME} data</name>
+                            <type>SSH</type>
+                            <key>ssh.run[data_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                            <delay>3h</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <params>cat /borg_check.json.tmp | grep '&quot;'{#HOST_NAME}'&quot;'  | sed '$s/,$//'</params>
+                            <authtype>PUBLIC_KEY</authtype>
+                            <username>zabbix_check</username>
+                            <publickey>id_rsa.pub</publickey>
+                            <privatekey>id_rsa</privatekey>
+                            <applications>
+                                <application>
+                                    <name>raw data</name>
+                                </application>
+                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>BORG</name>
+                                </application_prototype>
+                            </application_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#HOST_NAME} Backup state</name>
+                            <type>DEPENDENT</type>
+                            <key>state[{#HOST_NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>State</name>
+                                </application>
+                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>BORG</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.state</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[data_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{str(FAIL)}=1</expression>
+                                    <name>{#HOST_NAME} Backup fail, need repair.</name>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{str(LOCK)}=1</expression>
+                                    <name>{#HOST_NAME} Backup LOCK flag found</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{nodata(2d)}=1</expression>
+                                    <name>{#HOST_NAME} data not received at last 2 days.</name>
+                                    <priority>WARNING</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{str(too old)}=1</expression>
+                                    <name>{#HOST_NAME} Last backup is older 1 day</name>
+                                    <priority>INFO</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#HOST_NAME} Used backup space</name>
+                            <type>DEPENDENT</type>
+                            <key>unique_csize[{#HOST_NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Space</name>
+                                </application>
+                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>BORG</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.unique_csize</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[data_{#HOST_NAME},{$SSH_HOST},{$SSH_PORT}]</key>
+                            </master_item>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>{#HOST_NAME} Used backup space</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>199C0D</color>
+                                    <item>
+                                        <host>BORG Repository</host>
+                                        <key>unique_csize[{#HOST_NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#HOST_NAME}</lld_macro>
+                            <path>$.Host_name</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+            </discovery_rules>
+        </template>
+    </templates>
+</zabbix_export>
