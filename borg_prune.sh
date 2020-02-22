@@ -5,7 +5,7 @@ export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 
 BKP_NUM=30
 
-find /home/ -name config | sed 's/config$//' | grep sysadmin | while read line ; do
+find /home/ -name config | sed 's/config$//' | while read line ; do
 
     BKP_FACT=`borg list $line | wc -l`
 
@@ -15,7 +15,7 @@ find /home/ -name config | sed 's/config$//' | grep sysadmin | while read line ;
 
 	echo $line Prune now to $BKP_NUM backups.
 
-	borg --debug prune -v --stats --list --keep-within=$BKP_NUM\d $line
+	borg prune --stats --list --keep-within=$BKP_NUM\d $line
 	USER=`echo $line | awk -F'/' '{print $3}'`
 	chown -R $USER:$USER $line
 
