@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-02-23T04:18:27Z</date>
+    <date>2020-02-23T04:24:07Z</date>
     <groups>
         <group>
             <name>BORG</name>
@@ -106,6 +106,12 @@ echo &quot;]&quot;</params>
                                     <expression>({last()}/{last(#1,1d)})&lt;0.8</expression>
                                     <name>{#HOST_NAME} Database size is strange</name>
                                     <priority>WARNING</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>{#HOST_NAME} Database size is zero?</name>
+                                            <expression>{BORG Repository:Database_size[{#HOST_NAME}].last()}&lt;1M or {BORG Repository:Database_size[{#HOST_NAME}].nodata(2d)}=1</expression>
+                                        </dependency>
+                                    </dependencies>
                                 </trigger_prototype>
                                 <trigger_prototype>
                                     <expression>{last()}&lt;1M or {nodata(2d)}=1</expression>
