@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-02-22T10:45:29Z</date>
+    <date>2020-02-23T04:18:27Z</date>
     <groups>
         <group>
             <name>BORG</name>
@@ -103,13 +103,13 @@ echo &quot;]&quot;</params>
                             </master_item>
                             <trigger_prototypes>
                                 <trigger_prototype>
-                                    <expression>{last()}&lt;({prev()}/1.5)</expression>
+                                    <expression>({last()}/{last(#1,1d)})&lt;0.8</expression>
                                     <name>{#HOST_NAME} Database size is strange</name>
                                     <priority>WARNING</priority>
                                 </trigger_prototype>
                                 <trigger_prototype>
                                     <expression>{last()}&lt;1M or {nodata(2d)}=1</expression>
-                                    <name>{#HOST_NAME} Database size is too small</name>
+                                    <name>{#HOST_NAME} Database size is zero?</name>
                                     <priority>HIGH</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
