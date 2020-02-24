@@ -83,7 +83,7 @@ find /home/ -name config | sed 's/config$//' | while read line ; do
 
 	sleep 10
 
-	echo "Check BORG reposotory consistency... "
+	echo -n "Check BORG reposotory consistency... "
 	borg check --verify-data --show-rc --last 1 $line
 	if [ $? -ne 0 ] ; then
 	    echo '        { "Host_name":"'$NAME'", '$SIZE_1' '$SIZE_2', "Database_size":"'$DB_SIZE'", "state":"check FAIL!" },' >>$LOG.tmp
