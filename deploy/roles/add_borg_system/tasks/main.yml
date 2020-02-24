@@ -1,0 +1,81 @@
+---
+- name: Load BORG to destination system
+  copy:
+    src=borg-1.1.10
+    dest=/usr/bin/borg-1.1.10
+    mode=0755
+    owner=root group=root
+
+- name: create symlink
+  file:
+    src=/usr/bin/borg-1.1.10
+    dest=/usr/bin/borg
+    state=link
+    mode=0755
+
+- name: create etc folder
+  file:
+    path=/etc/borg
+    state=directory
+    owner=root
+    group=root
+    mode=0700
+
+- name: Load backup script to destination system
+  template:
+    src=borg_backup.j2
+    dest=/etc/borg/borg_backup
+    mode=0700
+    owner=root group=root
+
+- name: Add backup script to cron
+  cron:
+    name: "Borg"
+    user: root
+    state: present
+    minute: "0"
+    hour: "0"
+    job: "perl -e 'sleep int(rand(7200))' && /etc/borg/borg_backup"
+    cron_file: borg_cron
+
+- name: Add ssh config file to root
+  template:
+    src=ssh_config.j2
+    dest=/root/.ssh/config
+    mode=0644
+    owner=root group=root
+
+- name: Create ssh key
+  openssh_keypair:
+    path: /etc/borg/ssh_key
+    owner: root
+    mode: 0600
+#    force: yes
+    comment: borg
+  register: keyfile
+
+- name: Add local user
+  delegate_to: 127.0.0.1
+  user:
+    name: "{{ inventory_hostname | regex_replace('\\.','_') }}"
+    comment: "{{ inventory_hostname }}"
+    create_home: true
+    home: "/home/{{ inventory_hostname | regex_replace('\\.','_') }}"
+    shell: "/bin/bash"
+
+- name: Add key to local user
+  delegate_to: 127.0.0.1
+  authorized_key:
+    user: "{{ inventory_hostname | regex_replace('\\.','_') }}"
+    state: present
+    key: "{{ keyfile.public_key }}"
+    key_options: "command=\"/usr/bin/borg serve --append-only --restrict-to-path /home/{{ inventory_hostname | regex_replace('\\.','_') }}/{{ inventory_hostname | regex_replace('\\.','_') }}\",restrict"
+
+- name: Add BORG server to known_hosts
+  known_hosts:
+    name: "{{ borg_server_name }}"
+#    key: "{{ borg_server_name }},{{ borg_server_ip }} ssh-rsa {{ borg_server_pubrsakey }}"
+    key: "{{ borg_server_name }} ssh-rsa {{ borg_server_pubrsakey }}"
+    state: present
+
+

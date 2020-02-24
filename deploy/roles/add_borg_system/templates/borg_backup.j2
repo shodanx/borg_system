@@ -4,14 +4,20 @@ export BORG_RSH='ssh -i /etc/borg/ssh_key'
 export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
 export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 
-MYHOST=`hostname | sed s/\\\./_/g`
-SERVER=`cat /etc/borg/server_name`
-REPO='ssh://'$MYHOST'@'$SERVER'/./'$MYHOST
+REPO='ssh://{{ inventory_hostname | regex_replace("\.","_") }}@{{ borg_server_name }}/./{{ inventory_hostname | regex_replace("\.","_") }}'
 
 rm    -R /mnt/db_bkp
 mkdir -p /mnt/db_bkp
 
 innobackupex --compress /mnt/db_bkp >/var/log/borg_last.log  2>&1
+
+borg info $REPO
+
+if [ $? -ne 0 ] ; then
+    echo Creating repository....
+    borg init -e none  $REPO
+fi
+
 
 borg create -v --stats --list            \
     $REPO::'{now:%Y-%m-%d_%H:%M}'  \
