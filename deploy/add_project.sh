@@ -31,7 +31,7 @@ if [ "$HNAME" = "$DEST_HOST_FIX" ] ; then
     scp borg_cron   $DEST_HOST:/etc/cron.d/
     scp borg-1.1.10 $DEST_HOST:/usr/bin/
 
-    ssh $DEST_HOST "echo -n "$SRV_HNAME"		 >/etc/borg/server_naame"
+    ssh $DEST_HOST "echo -n "$SRV_HNAME"		 >/etc/borg/server_name"
 
     ssh $DEST_HOST "echo 'Host "$SRV_HNAME"'		 >/root/.ssh/config"
     ssh $DEST_HOST "echo '    Hostname "$SRV_HNAME"'	>>/root/.ssh/config"
