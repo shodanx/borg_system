@@ -2,3 +2,4 @@ logs
 inventory
 git.sh
 vars/main.yml
+deploy/roles/add_borg_system/vars/main.yml
