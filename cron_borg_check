@@ -1,2 +1,2 @@
 #
-0 10 * * * root /etc/borg/check_borg.sh
+0 7 * * * root /etc/borg/check_borg.sh

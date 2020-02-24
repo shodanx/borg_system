@@ -21,6 +21,13 @@
     group=root
     mode=0700
 
+- name: Load exclude file
+  copy:
+    src=borg_exclude
+    dest=/etc/borg/borg_exclude
+    mode=0600
+    owner=root group=root
+
 - name: Load backup script to destination system
   template:
     src=borg_backup.j2
