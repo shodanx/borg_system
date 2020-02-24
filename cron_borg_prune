@@ -1,2 +1,0 @@
-#
-0 10 * * 7 root /etc/borg/borg_prune.sh
