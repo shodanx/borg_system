@@ -50,7 +50,6 @@
     path: /etc/borg/ssh_key
     owner: root
     mode: 0600
-#    force: yes
     comment: borg
   register: keyfile
 
@@ -74,7 +73,6 @@
 - name: Add BORG server to known_hosts
   known_hosts:
     name: "{{ borg_server_name }}"
-#    key: "{{ borg_server_name }},{{ borg_server_ip }} ssh-rsa {{ borg_server_pubrsakey }}"
     key: "{{ borg_server_name }} ssh-rsa {{ borg_server_pubrsakey }}"
     state: present
 
