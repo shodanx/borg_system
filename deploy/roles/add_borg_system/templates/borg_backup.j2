@@ -9,7 +9,7 @@ REPO='ssh://{{ inventory_hostname | regex_replace("\.","_") }}@{{ borg_server_na
 rm    -R /mnt/db_bkp  >/dev/null  2>&1
 mkdir -p /mnt/db_bkp
 
-echo Dump darabase....
+echo Dump database with innobackupex....
 innobackupex --compress /mnt/db_bkp >/var/log/borg_last.log  2>&1
 if [ $? -ne 0 ] ; then
     echo Try new xtrabackup....
@@ -28,6 +28,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 
+echo Creating archive....
 borg create -v --stats --list            \
     $REPO::'{now:%Y-%m-%d_%H:%M}'  \
     /                                    \
