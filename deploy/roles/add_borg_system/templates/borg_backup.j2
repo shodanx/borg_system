@@ -9,7 +9,16 @@ REPO='ssh://{{ inventory_hostname | regex_replace("\.","_") }}@{{ borg_server_na
 rm    -R /mnt/db_bkp  >/dev/null  2>&1
 mkdir -p /mnt/db_bkp
 
+echo Dump darabase....
 innobackupex --compress /mnt/db_bkp >/var/log/borg_last.log  2>&1
+if [ $? -ne 0 ] ; then
+    echo Try new xtrabackup....
+    xtrabackup --backup --compress --target-dir=/mnt/db_bkp >/var/log/borg_last.log  2>&1
+    if [ $? -ne 0 ] ; then
+	echo Try classic mysqldump....
+	mysqldump --all-databases >/mnt/db_bkp/base.sql  2>&1
+    fi
+fi
 
 borg info $REPO
 
