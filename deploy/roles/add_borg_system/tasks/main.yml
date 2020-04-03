@@ -1,14 +1,14 @@
 ---
 - name: Load BORG to destination system
   copy:
-    src=borg-1.1.10
-    dest=/usr/bin/borg-1.1.10
+    src=borg-1.1.11
+    dest=/usr/bin/borg-1.1.11
     mode=0755
     owner=root group=root
 
 - name: create symlink
   file:
-    src=/usr/bin/borg-1.1.10
+    src=/usr/bin/borg-1.1.11
     dest=/usr/bin/borg
     state=link
     mode=0755
