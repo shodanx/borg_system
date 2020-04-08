@@ -6,14 +6,15 @@ export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
 
 REPO='ssh://{{ inventory_hostname | regex_replace("\.","_") }}@{{ borg_server_name }}/./{{ inventory_hostname | regex_replace("\.","_") }}'
 
-rm    -R /mnt/db_bkp  >/dev/null  2>&1
+rm       /var/log/borg_last.log  >/dev/null  2>&1
+rm    -R /mnt/db_bkp             >/dev/null  2>&1
 mkdir -p /mnt/db_bkp
 
 echo Dump database with innobackupex....
-innobackupex --compress /mnt/db_bkp >/var/log/borg_last.log  2>&1
+innobackupex --compress /mnt/db_bkp                         >>/var/log/borg_last.log  2>&1
 if [ $? -ne 0 ] ; then
     echo Try new xtrabackup....
-    xtrabackup --backup --compress --target-dir=/mnt/db_bkp >/var/log/borg_last.log  2>&1
+    xtrabackup --backup --compress --target-dir=/mnt/db_bkp >>/var/log/borg_last.log  2>&1
     if [ $? -ne 0 ] ; then
 	echo Try classic mysqldump....
 	mysqldump --all-databases >/mnt/db_bkp/base.sql  2>&1
